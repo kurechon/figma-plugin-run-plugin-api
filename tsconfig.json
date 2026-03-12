@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
-    "target": "ES6",
+    "target": "ES2020",
     "module": "ESNext",
-    "moduleResolution": "Node",
-    "lib": ["ES6", "DOM"],
+    "moduleResolution": "bundler",
+    "lib": ["ES2020", "DOM"],
     "jsx": "react-jsx",
     "jsxImportSource": "@emotion/react",
     "allowJs": false,
@@ -12,6 +12,7 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "strict": true,
+    "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
@@ -19,6 +20,6 @@
     },
     "types": ["@types/node", "@figma/plugin-typings"]
   },
-  "include": ["src", ".eslintrc.js", ".prettierrc.js"],
+  "include": ["src", "eslint.config.js", "vite.config.ts", "vite.config.code.ts"],
   "exclude": ["node_modules", "dist", "src/ui/assets/types"]
 }

@@ -25,6 +25,7 @@ const defaultOptions: Options = {
     renderWhitespace: 'boundary',
     scrollBeyondLastColumn: 0,
     scrollBeyondLastLine: false,
+    renderLineHighlight: 'none',
     selectionHighlight: false,
     suggestLineHeight: 16.5,
     tabSize: 2,

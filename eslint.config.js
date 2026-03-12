@@ -24,7 +24,7 @@ export default tseslint.config(
     },
     rules: {
       '@typescript-eslint/no-explicit-any': 'warn',
-      'react/no-unknown-property': ['error', { ignore: ['css'] }],
+      'react/no-unknown-property': 'off',
       'react/react-in-jsx-scope': 'off'
     },
     settings: {

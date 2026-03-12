@@ -1,6 +1,5 @@
 import { Monaco } from '@monaco-editor/react'
-import { useState } from 'react'
-import { createContainer } from 'unstated-next'
+import { create } from 'zustand'
 import {
   AllThemeType,
   BuiltinThemeType,
@@ -14,20 +13,45 @@ import { CDN_URL } from '@/constants'
 import defaultOptions from '@/defaultOptions'
 import { allTheme } from '@/ui/themeList'
 
-function Store() {
-  const [code, setCode] = useState(defaultOptions.code)
-  const [editorOptions, setEditorOptions] = useState(
-    defaultOptions.editorOptions
-  )
-  const [cursorPosition, setCursorPosition] = useState(
-    defaultOptions.cursorPosition
-  )
-  const [theme, setTheme] = useState(defaultOptions.theme)
-  const [isGotOptions, setIsGotOptions] = useState(false)
-  const [isMainEditorMounted, setIsMainEditorMounted] = useState(false)
-  const [currentScreen, setCurrentScreen] = useState<CurrentScreen>('main')
+type StoreState = {
+  code: string
+  setCode: (code: string) => void
+  editorOptions: Options['editorOptions']
+  setEditorOptions: (editorOptions: Options['editorOptions']) => void
+  cursorPosition: Options['cursorPosition']
+  setCursorPosition: (cursorPosition: Options['cursorPosition']) => void
+  theme: Options['theme']
+  setTheme: (theme: Options['theme']) => void
+  isGotOptions: boolean
+  setIsGotOptions: (isGotOptions: boolean) => void
+  isMainEditorMounted: boolean
+  setIsMainEditorMounted: (isMainEditorMounted: boolean) => void
+  currentScreen: CurrentScreen
+  setCurrentScreen: (currentScreen: CurrentScreen) => void
+  getOptions: () => void
+  updateOptions: (pluginMessage: GetOptionsSuccessMessage) => void
+  listenPluginMessage: () => void
+  closePlugin: () => void
+  updateTheme: (monaco: Monaco, theme: Options['theme']) => Promise<void>
+}
 
-  function getOptions() {
+export const useStore = create<StoreState>()((set, get) => ({
+  code: defaultOptions.code,
+  setCode: (code) => set({ code }),
+  editorOptions: defaultOptions.editorOptions,
+  setEditorOptions: (editorOptions) => set({ editorOptions }),
+  cursorPosition: defaultOptions.cursorPosition,
+  setCursorPosition: (cursorPosition) => set({ cursorPosition }),
+  theme: defaultOptions.theme,
+  setTheme: (theme) => set({ theme }),
+  isGotOptions: false,
+  setIsGotOptions: (isGotOptions) => set({ isGotOptions }),
+  isMainEditorMounted: false,
+  setIsMainEditorMounted: (isMainEditorMounted) => set({ isMainEditorMounted }),
+  currentScreen: 'main' as CurrentScreen,
+  setCurrentScreen: (currentScreen) => set({ currentScreen }),
+
+  getOptions: () => {
     parent.postMessage(
       {
         pluginMessage: { type: 'get-options' }
@@ -35,23 +59,23 @@ function Store() {
       '*'
     )
     console.log('postMessage: get-options')
-  }
+  },
 
-  function updateOptions(pluginMessage: GetOptionsSuccessMessage) {
+  updateOptions: (pluginMessage) => {
     const options = pluginMessage.options
+    set({
+      code: options.code,
+      editorOptions: options.editorOptions,
+      cursorPosition: options.cursorPosition,
+      theme: options.theme,
+      isGotOptions: true
+    })
+  },
 
-    setCode(options.code)
-    setEditorOptions(options.editorOptions)
-    setCursorPosition(options.cursorPosition)
-    setTheme(options.theme)
-
-    setIsGotOptions(true)
-  }
-
-  function listenPluginMessage() {
+  listenPluginMessage: () => {
     console.log('listening pluginMessage...')
 
-    onmessage = event => {
+    onmessage = (event) => {
       if (!event.data.pluginMessage) {
         return
       }
@@ -61,16 +85,16 @@ function Store() {
       switch (pluginMessage.type) {
         case 'get-options-success':
           console.log('onmessage: get-options-success', pluginMessage)
-          updateOptions(pluginMessage)
+          get().updateOptions(pluginMessage)
           break
 
         default:
           break
       }
     }
-  }
+  },
 
-  function closePlugin() {
+  closePlugin: () => {
     parent.postMessage(
       {
         pluginMessage: {
@@ -80,12 +104,11 @@ function Store() {
       '*'
     )
     console.log('postMessage: close-plugin')
-  }
+  },
 
-  async function updateTheme(monaco: Monaco, theme: Options['theme']) {
+  updateTheme: async (monaco, theme) => {
     console.log('updateTheme', theme)
 
-    // light と vs-darkのときはフェッチしない
     function isBuiltinTheme(
       theme: keyof AllThemeType
     ): theme is keyof BuiltinThemeType {
@@ -96,46 +119,27 @@ function Store() {
       console.log('apply builtinTheme', theme)
       monaco.editor.setTheme(theme)
     } else {
-      console.log('fetchTheme', allTheme[theme])
-
       const url = `${CDN_URL}/themes/${allTheme[theme]}.json`
-      const res = await fetch(url)
-      const json = await res.json()
-      // const parsedTheme = MonacoThemes.parseTmTheme(json)
-      // console.log(parsedTheme)
-      console.log(theme, allTheme[theme], json)
 
-      monaco.editor.defineTheme(theme, json)
-      monaco.editor.setTheme(theme)
+      try {
+        console.log('fetchTheme', allTheme[theme])
+        const res = await fetch(url)
+        if (!res.ok) throw new Error(`Failed to fetch theme: ${res.status}`)
+        const json = await res.json()
+        console.log(theme, allTheme[theme], json)
+
+        monaco.editor.defineTheme(theme, json)
+        monaco.editor.setTheme(theme)
+      } catch (error) {
+        console.error('Failed to fetch theme, falling back to light', error)
+        monaco.editor.setTheme('light')
+        set({ theme: 'light' })
+        console.log('updateTheme finish (fallback)')
+        return
+      }
     }
 
-    // Storeにも保存
-    setTheme(theme)
-
+    set({ theme })
     console.log('updateTheme finish')
   }
-
-  return {
-    code,
-    setCode,
-    editorOptions,
-    setEditorOptions,
-    cursorPosition,
-    setCursorPosition,
-    theme,
-    setTheme,
-    isGotOptions,
-    setIsGotOptions,
-    isMainEditorMounted,
-    setIsMainEditorMounted,
-    currentScreen,
-    setCurrentScreen,
-    getOptions,
-    updateOptions,
-    listenPluginMessage,
-    closePlugin,
-    updateTheme
-  }
-}
-
-export default createContainer(Store)
+}))

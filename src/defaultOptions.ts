@@ -19,7 +19,7 @@ const defaultOptions: Options = {
       enabled: false
     },
     padding: {
-      top: 15,
+      top: 0,
       bottom: 15
     },
     renderWhitespace: 'boundary',

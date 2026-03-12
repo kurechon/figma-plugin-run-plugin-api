@@ -285,9 +285,8 @@ const Main = () => {
       `}
     >
       <HStack
-        justify="center"
         css={css`
-          padding: ${spacing[1]} ${spacing[2]};
+          padding: ${spacing[1]} ${spacing[2]} ${spacing[1]} 18px;
           position: relative;
           cursor: pointer;
         `}
@@ -338,17 +337,16 @@ const Main = () => {
             : 'New'}
         </span>
 
+        <Spacer x={spacing[1]} />
+
         <IconChevronDown
           css={css`
-            position: absolute;
-            right: ${spacing[2]};
             pointer-events: none;
             fill: ${color.disabled};
+            flex-shrink: 0;
           `}
         />
       </HStack>
-
-      <Divider />
 
       {/* editor */}
       {isGotOptions && (
@@ -363,7 +361,11 @@ const Main = () => {
             onChange={onChange}
             onMount={onMount}
             onValidate={onValidate}
-            options={editorOptions}
+            options={{
+              ...editorOptions,
+              padding: { ...editorOptions.padding, top: 0 },
+              renderLineHighlight: 'none' as const
+            }}
             theme={theme}
             value={code}
           />
@@ -407,7 +409,11 @@ const Main = () => {
                 }
               }}
             >
-              <IconTrash />
+              <IconTrash
+                css={css`
+                  fill: ${color.alert};
+                `}
+              />
             </Button>
 
             <Spacer x={spacing[2]} />

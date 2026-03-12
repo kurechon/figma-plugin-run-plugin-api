@@ -1,11 +1,11 @@
 import { css } from '@emotion/react'
 import ReactMonacoEditor, { Monaco } from '@monaco-editor/react'
-import * as monaco from 'monaco-editor/esm/vs/editor/editor.api'
-import React, { useEffect, useRef, useState } from 'react'
+import type * as monaco from 'monaco-editor'
+import { ChangeEvent, useEffect, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { AllThemeType, Options, PostMessage } from '@/@types/common'
 import defaultOptions from '@/defaultOptions'
-import Store from '@/ui/Store'
+import { useStore } from '@/ui/Store'
 import IconBack from '@/ui/assets/img/icon_back.inline.svg'
 import IconChevronDown from '@/ui/assets/img/icon_chevron_down.inline.svg'
 import JSONSchemaEditorOptions from '@/ui/assets/types/editorOptions.schema.json'
@@ -17,18 +17,15 @@ import VStack from '@/ui/components/VStack'
 import { color, spacing, size, radius } from '@/ui/styles'
 import { allTheme } from '@/ui/themeList'
 
-const Setting: React.FC = () => {
-  const {
-    code,
-    editorOptions,
-    setEditorOptions,
-    cursorPosition,
-    theme,
-    isGotOptions,
-    currentScreen,
-    setCurrentScreen,
-    updateTheme
-  } = Store.useContainer()
+const Setting = () => {
+  const code = useStore((s) => s.code)
+  const editorOptions = useStore((s) => s.editorOptions)
+  const setEditorOptions = useStore((s) => s.setEditorOptions)
+  const cursorPosition = useStore((s) => s.cursorPosition)
+  const theme = useStore((s) => s.theme)
+  const isGotOptions = useStore((s) => s.isGotOptions)
+  const setCurrentScreen = useStore((s) => s.setCurrentScreen)
+  const updateTheme = useStore((s) => s.updateTheme)
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor>()
   const monacoRef = useRef<Monaco>()
   const modelRef = useRef<monaco.editor.ITextModel>()
@@ -43,7 +40,7 @@ const Setting: React.FC = () => {
       applySettings()
     },
     {
-      enableOnTags: ['INPUT', 'SELECT', 'TEXTAREA']
+      enableOnFormTags: ['INPUT', 'SELECT', 'TEXTAREA']
     }
   )
 
@@ -111,7 +108,7 @@ const Setting: React.FC = () => {
   }
 
   async function onSelectThemeChange(
-    event: React.ChangeEvent<HTMLSelectElement>
+    event: ChangeEvent<HTMLSelectElement>
   ) {
     if (!monacoRef.current) {
       return

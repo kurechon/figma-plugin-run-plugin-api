@@ -1,10 +1,10 @@
 import { css, Global } from '@emotion/react'
 import { loader } from '@monaco-editor/react'
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import 'ress'
 import { CDN_URL } from '@/constants'
-import Store from '@/ui/Store'
+import { useStore } from '@/ui/Store'
 import Main from '@/ui/components/Main'
 import Setting from '@/ui/components/Setting'
 import { typography, color } from '@/ui/styles'
@@ -16,9 +16,11 @@ loader.config({
   }
 })
 
-const AppContent: React.FC = () => {
-  const { getOptions, listenPluginMessage, closePlugin, currentScreen } =
-    Store.useContainer()
+const App = () => {
+  const getOptions = useStore((s) => s.getOptions)
+  const listenPluginMessage = useStore((s) => s.listenPluginMessage)
+  const closePlugin = useStore((s) => s.closePlugin)
+  const currentScreen = useStore((s) => s.currentScreen)
 
   // listen keyboard shortcut
   useHotkeys(
@@ -28,12 +30,12 @@ const AppContent: React.FC = () => {
       closePlugin()
     },
     {
-      enableOnTags: ['INPUT', 'SELECT', 'TEXTAREA']
+      enableOnFormTags: ['INPUT', 'SELECT', 'TEXTAREA']
     }
   )
 
   useEffect(() => {
-    console.log('AppContent mounted')
+    console.log('App mounted')
 
     // get options
     getOptions()
@@ -71,18 +73,6 @@ const AppContent: React.FC = () => {
       {currentScreen === 'main' && <Main />}
       {currentScreen === 'setting' && <Setting />}
     </>
-  )
-}
-
-const App: React.FC = () => {
-  useEffect(() => {
-    console.log('App mounted')
-  }, [])
-
-  return (
-    <Store.Provider>
-      <AppContent />
-    </Store.Provider>
   )
 }
 

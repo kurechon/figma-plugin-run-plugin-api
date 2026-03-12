@@ -1,15 +1,14 @@
 import { css } from '@emotion/react'
-import React from 'react'
 import { color } from '@/ui/styles'
 
 type DividerProps = JSX.IntrinsicElements['div'] & {
   direction?: 'column' | 'row'
 }
 
-const Divider: React.FC<DividerProps> = ({
+const Divider = ({
   direction = 'row',
   ...delegated
-}) => {
+}: DividerProps) => {
   const width = direction === 'column' ? '1px' : '100%'
   const height = direction === 'row' ? '1px' : '100%'
 

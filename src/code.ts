@@ -11,11 +11,27 @@ const CLIENT_STORAGE_KEY_NAME = 'run-plugin-api'
 
 function exec(msg: ExecMessage) {
   const jsCode = msg.code
-  // console.clear()
-  eval(jsCode)
-  setTimeout(() => {
-    figma.notify('Code has been executed.')
-  }, 500)
+  try {
+    try {
+      // new Function() でfigmaオブジェクトを明示的に渡す（eval()より安全）
+      const executor = new Function('figma', jsCode)
+      executor(figma)
+    } catch (e) {
+      // sandboxでnew Function()が使えない場合はeval()にフォールバック
+      if (e instanceof TypeError || (e instanceof Error && e.message.includes('Function'))) {
+        eval(jsCode)
+      } else {
+        throw e
+      }
+    }
+    setTimeout(() => {
+      figma.notify('Code has been executed.')
+    }, 500)
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    figma.notify(`Error: ${message}`, { error: true })
+    console.error('Execution error:', error)
+  }
 }
 
 async function closePlugin() {

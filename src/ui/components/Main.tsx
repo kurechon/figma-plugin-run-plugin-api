@@ -1,12 +1,11 @@
-import { get } from 'http'
 import { css } from '@emotion/react'
 import ReactMonacoEditor, { Monaco } from '@monaco-editor/react'
-import type * as monaco from 'monaco-editor'
-import React, { useEffect, useRef, useState } from 'react'
+import type * as MonacoEditor from 'monaco-editor'
+import { useEffect, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { PostMessage } from '@/@types/common'
 import { ONCHANGE_TIMER_DURATION } from '@/constants'
-import Store from '@/ui/Store'
+import { useStore } from '@/ui/Store'
 import IconPlay from '@/ui/assets/img/icon_play.inline.svg'
 import IconSetting from '@/ui/assets/img/icon_setting.inline.svg'
 import Button from '@/ui/components/Button'
@@ -15,32 +14,28 @@ import HStack from '@/ui/components/HStack'
 import Loading from '@/ui/components/Loading'
 import Spacer from '@/ui/components/Spacer'
 import VStack from '@/ui/components/VStack'
+import figmaTypings from '@/ui/assets/types/figma.d.ts?raw'
 import { spacing } from '@/ui/styles'
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const figmaTypings = require('@/ui/assets/types/figma.d.ts')
-
-const Main: React.FC = () => {
-  const {
-    code,
-    setCode,
-    editorOptions,
-    cursorPosition,
-    setCursorPosition,
-    theme,
-    isGotOptions,
-    isMainEditorMounted,
-    setIsMainEditorMounted,
-    setCurrentScreen,
-    updateTheme
-  } = Store.useContainer()
-  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor>()
+const Main = () => {
+  const code = useStore((s) => s.code)
+  const setCode = useStore((s) => s.setCode)
+  const editorOptions = useStore((s) => s.editorOptions)
+  const cursorPosition = useStore((s) => s.cursorPosition)
+  const setCursorPosition = useStore((s) => s.setCursorPosition)
+  const theme = useStore((s) => s.theme)
+  const isGotOptions = useStore((s) => s.isGotOptions)
+  const isMainEditorMounted = useStore((s) => s.isMainEditorMounted)
+  const setIsMainEditorMounted = useStore((s) => s.setIsMainEditorMounted)
+  const setCurrentScreen = useStore((s) => s.setCurrentScreen)
+  const updateTheme = useStore((s) => s.updateTheme)
+  const editorRef = useRef<MonacoEditor.editor.IStandaloneCodeEditor>()
   const monacoRef = useRef<Monaco>()
-  const modelRef = useRef<monaco.editor.ITextModel>()
+  const modelRef = useRef<MonacoEditor.editor.ITextModel>()
   const onChangeTimer = useRef(0)
   const onCursorPositionChangeTimer = useRef(0)
-  const [error, setError] = useState<monaco.editor.IMarker[]>([])
-  const errorRef = useRef<monaco.editor.IMarker[]>([])
+  const [error, setError] = useState<MonacoEditor.editor.IMarker[]>([])
+  const errorRef = useRef<MonacoEditor.editor.IMarker[]>([])
 
   // add keyboard shortcut for outside of editor
   useHotkeys('ctrl+enter, command+enter', (event, handler) => {
@@ -53,7 +48,7 @@ const Main: React.FC = () => {
   })
 
   function getCompilerOptions(monaco: Monaco) {
-    const compilerOptions: monaco.languages.typescript.CompilerOptions = {
+    const compilerOptions: MonacoEditor.typescript.CompilerOptions = {
       target: monaco.languages.typescript.ScriptTarget.ESNext,
       module: monaco.languages.typescript.ModuleKind.ESNext,
       allowNonTsExtensions: true,
@@ -100,7 +95,7 @@ const Main: React.FC = () => {
   }
 
   async function onMount(
-    editor: monaco.editor.IStandaloneCodeEditor,
+    editor: MonacoEditor.editor.IStandaloneCodeEditor,
     monaco: Monaco
   ) {
     console.log('CodeEditor onMount', editor, monaco)
@@ -131,7 +126,7 @@ const Main: React.FC = () => {
 
   function onChange(
     value: string | undefined,
-    event: monaco.editor.IModelContentChangedEvent
+    event: MonacoEditor.editor.IModelContentChangedEvent
   ) {
     console.log('CodeEditor onChange', value, event)
 
@@ -166,7 +161,7 @@ const Main: React.FC = () => {
   }
 
   function onCursorPositionChange(
-    event: monaco.editor.ICursorPositionChangedEvent
+    event: MonacoEditor.editor.ICursorPositionChangedEvent
   ) {
     // ユーザーが任意でカーソル移動させた時以外はreturn
     if (event.reason !== 3) {
@@ -196,7 +191,7 @@ const Main: React.FC = () => {
     }, ONCHANGE_TIMER_DURATION)
   }
 
-  function onValidate(markers: monaco.editor.IMarker[]) {
+  function onValidate(markers: MonacoEditor.editor.IMarker[]) {
     console.log('CodeEditor onValidate', markers)
 
     // severityが8のものだけをerrorに入れる

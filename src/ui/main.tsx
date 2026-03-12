@@ -1,12 +1,11 @@
-import React from 'react'
-import { render } from 'react-dom'
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
 import App from '@/ui/App'
 
 const plugin = document.getElementById('plugin') as HTMLElement
 
-render(
-  <React.StrictMode>
+createRoot(plugin).render(
+  <StrictMode>
     <App />
-  </React.StrictMode>,
-  plugin
+  </StrictMode>
 )

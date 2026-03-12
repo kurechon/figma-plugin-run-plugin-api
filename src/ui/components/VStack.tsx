@@ -1,18 +1,18 @@
 import { css } from '@emotion/react'
 import { Property } from 'csstype'
-import React from 'react'
+import { PropsWithChildren } from 'react'
 
-type HStackProps = JSX.IntrinsicElements['div'] & {
+type VStackProps = JSX.IntrinsicElements['div'] & {
   align?: Property.AlignItems
   justify?: Property.JustifyContent
 }
 
-const HStack: React.FC<HStackProps> = ({
+const VStack = ({
   align = 'stretch',
   justify = 'inherit',
   children,
   ...delegated
-}) => {
+}: PropsWithChildren<VStackProps>) => {
   return (
     <div
       css={css`
@@ -28,4 +28,4 @@ const HStack: React.FC<HStackProps> = ({
   )
 }
 
-export default HStack
+export default VStack

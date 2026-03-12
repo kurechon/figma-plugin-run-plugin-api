@@ -1,5 +1,5 @@
 import { css } from '@emotion/react'
-import React from 'react'
+import { MouseEventHandler, PropsWithChildren } from 'react'
 import HStack from '@/ui/components/HStack'
 import { color, spacing, radius, size } from '@/ui/styles'
 
@@ -7,10 +7,10 @@ type ButtonProps = JSX.IntrinsicElements['div'] & {
   type?: 'primary' | 'border' | 'ghost'
   disabled?: boolean
   padding?: boolean
-  onClick?: React.MouseEventHandler<HTMLDivElement>
+  onClick?: MouseEventHandler<HTMLDivElement>
 }
 
-const Button: React.FC<ButtonProps> = ({
+const Button = ({
   type = 'primary',
   disabled = false,
   padding = true,
@@ -19,7 +19,7 @@ const Button: React.FC<ButtonProps> = ({
   },
   children,
   ...delegated
-}) => {
+}: PropsWithChildren<ButtonProps>) => {
   let backgroundColor!: string
   let borderColor!: string
   let textColor!: string

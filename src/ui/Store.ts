@@ -84,12 +84,16 @@ export const useStore = create<StoreState>()((set, get) => ({
 
   updateOptions: pluginMessage => {
     const options = pluginMessage.options
+    const historyItems = pluginMessage.history || []
+    const matchingEntry = historyItems.find(h => h.code === options.code)
+
     set({
       code: options.code,
       editorOptions: options.editorOptions,
       cursorPosition: options.cursorPosition,
       theme: options.theme,
-      history: pluginMessage.history || [],
+      history: historyItems,
+      selectedHistoryId: matchingEntry?.id ?? null,
       isGotOptions: true
     })
   },

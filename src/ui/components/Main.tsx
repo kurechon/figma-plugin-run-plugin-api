@@ -286,7 +286,7 @@ const Main = () => {
     >
       <HStack
         css={css`
-          padding: ${spacing[1]} ${spacing[2]} ${spacing[1]} 18px;
+          padding: ${spacing[2]} ${spacing[2]} ${spacing[2]} 18px;
           position: relative;
           cursor: pointer;
         `}

@@ -17,10 +17,10 @@ loader.config({
 })
 
 const App = () => {
-  const getOptions = useStore((s) => s.getOptions)
-  const listenPluginMessage = useStore((s) => s.listenPluginMessage)
-  const closePlugin = useStore((s) => s.closePlugin)
-  const currentScreen = useStore((s) => s.currentScreen)
+  const getOptions = useStore(s => s.getOptions)
+  const listenPluginMessage = useStore(s => s.listenPluginMessage)
+  const closePlugin = useStore(s => s.closePlugin)
+  const currentScreen = useStore(s => s.currentScreen)
 
   // listen keyboard shortcut
   useHotkeys(

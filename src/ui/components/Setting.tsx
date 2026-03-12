@@ -18,14 +18,14 @@ import { color, spacing, size, radius } from '@/ui/styles'
 import { allTheme } from '@/ui/themeList'
 
 const Setting = () => {
-  const code = useStore((s) => s.code)
-  const editorOptions = useStore((s) => s.editorOptions)
-  const setEditorOptions = useStore((s) => s.setEditorOptions)
-  const cursorPosition = useStore((s) => s.cursorPosition)
-  const theme = useStore((s) => s.theme)
-  const isGotOptions = useStore((s) => s.isGotOptions)
-  const setCurrentScreen = useStore((s) => s.setCurrentScreen)
-  const updateTheme = useStore((s) => s.updateTheme)
+  const code = useStore(s => s.code)
+  const editorOptions = useStore(s => s.editorOptions)
+  const setEditorOptions = useStore(s => s.setEditorOptions)
+  const cursorPosition = useStore(s => s.cursorPosition)
+  const theme = useStore(s => s.theme)
+  const isGotOptions = useStore(s => s.isGotOptions)
+  const setCurrentScreen = useStore(s => s.setCurrentScreen)
+  const updateTheme = useStore(s => s.updateTheme)
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor>()
   const monacoRef = useRef<Monaco>()
   const modelRef = useRef<monaco.editor.ITextModel>()
@@ -107,9 +107,7 @@ const Setting = () => {
     setError(errors)
   }
 
-  async function onSelectThemeChange(
-    event: ChangeEvent<HTMLSelectElement>
-  ) {
+  async function onSelectThemeChange(event: ChangeEvent<HTMLSelectElement>) {
     if (!monacoRef.current) {
       return
     }

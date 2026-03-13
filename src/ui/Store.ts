@@ -84,7 +84,7 @@ export const useStore = create<StoreState>()((set, get) => ({
 
   updateOptions: pluginMessage => {
     const options = pluginMessage.options
-    const historyItems = pluginMessage.history || []
+    const historyItems = pluginMessage.history
     const matchingEntry = historyItems.find(h => h.code === options.code)
 
     set({
@@ -181,28 +181,36 @@ export const useStore = create<StoreState>()((set, get) => ({
 
   addToHistory: code => {
     const currentHistory = get().history
-    const existing = currentHistory.find(h => h.code === code)
+    const existingIndex = currentHistory.findIndex(h => h.code === code)
 
-    if (existing) {
-      set({ selectedHistoryId: existing.id })
-      return
+    let newHistory: CodeHistory[]
+    let selectedId: string
+
+    if (existingIndex >= 0) {
+      const existing = currentHistory[existingIndex]
+      const updated = { ...existing, timestamp: Date.now() }
+      newHistory = [
+        updated,
+        ...currentHistory.filter((_, i) => i !== existingIndex)
+      ]
+      selectedId = existing.id
+    } else {
+      const title =
+        code
+          .split('\n')[0]
+          .replace(/^\/\/\s*/, '')
+          .trim() || 'Untitled'
+      const newEntry: CodeHistory = {
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2),
+        title,
+        code,
+        timestamp: Date.now()
+      }
+      newHistory = [newEntry, ...currentHistory].slice(0, 20)
+      selectedId = newEntry.id
     }
 
-    const title =
-      code
-        .split('\n')[0]
-        .replace(/^\/\/\s*/, '')
-        .trim() || 'Untitled'
-    const newEntry: CodeHistory = {
-      id: Date.now().toString(),
-      title,
-      code,
-      timestamp: Date.now()
-    }
-
-    const newHistory = [newEntry, ...currentHistory].slice(0, 20)
-
-    set({ history: newHistory, selectedHistoryId: newEntry.id })
+    set({ history: newHistory, selectedHistoryId: selectedId })
 
     parent.postMessage(
       {
@@ -255,6 +263,8 @@ export const useStore = create<StoreState>()((set, get) => ({
     )
     console.log('postMessage: set-history (delete)', newHistory)
 
-    get().clearEditor()
+    if (get().selectedHistoryId === id) {
+      get().clearEditor()
+    }
   }
 }))

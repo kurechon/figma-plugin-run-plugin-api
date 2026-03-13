@@ -1,7 +1,7 @@
 import { css } from '@emotion/react'
 import ReactMonacoEditor, { Monaco } from '@monaco-editor/react'
 import type * as MonacoEditor from 'monaco-editor'
-import { ChangeEvent, useEffect, useRef, useState } from 'react'
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { PostMessage } from '@/@types/common'
 import { ONCHANGE_TIMER_DURATION } from '@/constants'
@@ -40,6 +40,23 @@ const Main = () => {
   const setIsDirty = useStore(s => s.setIsDirty)
   const setPendingExecCode = useStore(s => s.setPendingExecCode)
   const deleteHistory = useStore(s => s.deleteHistory)
+  const selectedHistoryTitle = useMemo(
+    () =>
+      selectedHistoryId
+        ? (history.find(h => h.id === selectedHistoryId)?.title ?? 'New')
+        : 'New',
+    [selectedHistoryId, history]
+  )
+
+  const mergedEditorOptions = useMemo(
+    () => ({
+      ...editorOptions,
+      padding: { ...editorOptions.padding, top: 0 },
+      renderLineHighlight: 'none' as const
+    }),
+    [editorOptions]
+  )
+
   const editorRef = useRef<MonacoEditor.editor.IStandaloneCodeEditor>()
   const monacoRef = useRef<Monaco>()
   const modelRef = useRef<MonacoEditor.editor.ITextModel>()
@@ -332,9 +349,7 @@ const Main = () => {
             pointer-events: none;
           `}
         >
-          {selectedHistoryId
-            ? (history.find(h => h.id === selectedHistoryId)?.title ?? 'New')
-            : 'New'}
+          {selectedHistoryTitle}
         </span>
 
         <Spacer x={spacing[1]} />
@@ -361,11 +376,7 @@ const Main = () => {
             onChange={onChange}
             onMount={onMount}
             onValidate={onValidate}
-            options={{
-              ...editorOptions,
-              padding: { ...editorOptions.padding, top: 0 },
-              renderLineHighlight: 'none' as const
-            }}
+            options={mergedEditorOptions}
             theme={theme}
             value={code}
           />

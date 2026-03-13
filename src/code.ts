@@ -28,13 +28,8 @@ function exec(msg: ExecMessage) {
         throw e
       }
     }
-    setTimeout(() => {
-      figma.notify('Code has been executed.')
-      figma.ui.postMessage({
-        type: 'exec-success',
-        code: jsCode
-      } as PluginMessage)
-    }, 500)
+    figma.notify('Code has been executed.')
+    figma.ui.postMessage({ type: 'exec-success' } as PluginMessage)
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
     figma.notify(`Error: ${message}`, { error: true })

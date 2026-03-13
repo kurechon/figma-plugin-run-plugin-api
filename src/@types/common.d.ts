@@ -46,7 +46,6 @@ type ExecMessage = {
 }
 type ExecSuccessMessage = {
   type: 'exec-success'
-  code: string
 }
 type NotifyMessage = {
   type: 'notify'

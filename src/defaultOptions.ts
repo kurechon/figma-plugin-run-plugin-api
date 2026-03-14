@@ -19,12 +19,13 @@ const defaultOptions: Options = {
       enabled: false
     },
     padding: {
-      top: 15,
+      top: 0,
       bottom: 15
     },
     renderWhitespace: 'boundary',
     scrollBeyondLastColumn: 0,
     scrollBeyondLastLine: false,
+    renderLineHighlight: 'none',
     selectionHighlight: false,
     suggestLineHeight: 16.5,
     tabSize: 2,

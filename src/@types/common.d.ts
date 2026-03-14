@@ -12,6 +12,17 @@ type Options = {
   theme: keyof AllThemeType
 }
 
+type CodeHistory = {
+  id: string
+  title: string
+  code: string
+  timestamp: number
+}
+
+type HistoryData = {
+  items: CodeHistory[]
+}
+
 type CurrentScreen = 'main' | 'setting'
 
 type ClosePluginMessage = {
@@ -23,6 +34,7 @@ type GetOptionsMessage = {
 type GetOptionsSuccessMessage = {
   type: 'get-options-success'
   options: Options
+  history: CodeHistory[]
 }
 type SetOptionsMessage = {
   type: 'set-options'
@@ -32,10 +44,17 @@ type ExecMessage = {
   type: 'exec'
   code: string
 }
+type ExecSuccessMessage = {
+  type: 'exec-success'
+}
 type NotifyMessage = {
   type: 'notify'
   message: string
   options?: NotificationOptions
+}
+type SetHistoryMessage = {
+  type: 'set-history'
+  history: CodeHistory[]
 }
 
 type PluginMessage =
@@ -44,7 +63,9 @@ type PluginMessage =
   | GetOptionsSuccessMessage
   | SetOptionsMessage
   | ExecMessage
+  | ExecSuccessMessage
   | NotifyMessage
+  | SetHistoryMessage
 
 type PostMessage = {
   pluginMessage: PluginMessage

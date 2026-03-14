@@ -1,13 +1,15 @@
 import { css } from '@emotion/react'
 import ReactMonacoEditor, { Monaco } from '@monaco-editor/react'
 import type * as MonacoEditor from 'monaco-editor'
-import { useEffect, useRef, useState } from 'react'
+import { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { PostMessage } from '@/@types/common'
 import { ONCHANGE_TIMER_DURATION } from '@/constants'
 import { useStore } from '@/ui/Store'
+import IconFile from '@/ui/assets/img/icon_file.inline.svg'
 import IconPlay from '@/ui/assets/img/icon_play.inline.svg'
 import IconSetting from '@/ui/assets/img/icon_setting.inline.svg'
+import IconTrash from '@/ui/assets/img/icon_trash.inline.svg'
 import Button from '@/ui/components/Button'
 import Divider from '@/ui/components/Divider'
 import HStack from '@/ui/components/HStack'
@@ -15,20 +17,46 @@ import Loading from '@/ui/components/Loading'
 import Spacer from '@/ui/components/Spacer'
 import VStack from '@/ui/components/VStack'
 import figmaTypings from '@/ui/assets/types/figma.d.ts?raw'
-import { spacing } from '@/ui/styles'
+import IconChevronDown from '@/ui/assets/img/icon_chevron_down.inline.svg'
+import { color, spacing, typography } from '@/ui/styles'
 
 const Main = () => {
-  const code = useStore((s) => s.code)
-  const setCode = useStore((s) => s.setCode)
-  const editorOptions = useStore((s) => s.editorOptions)
-  const cursorPosition = useStore((s) => s.cursorPosition)
-  const setCursorPosition = useStore((s) => s.setCursorPosition)
-  const theme = useStore((s) => s.theme)
-  const isGotOptions = useStore((s) => s.isGotOptions)
-  const isMainEditorMounted = useStore((s) => s.isMainEditorMounted)
-  const setIsMainEditorMounted = useStore((s) => s.setIsMainEditorMounted)
-  const setCurrentScreen = useStore((s) => s.setCurrentScreen)
-  const updateTheme = useStore((s) => s.updateTheme)
+  const code = useStore(s => s.code)
+  const setCode = useStore(s => s.setCode)
+  const editorOptions = useStore(s => s.editorOptions)
+  const cursorPosition = useStore(s => s.cursorPosition)
+  const setCursorPosition = useStore(s => s.setCursorPosition)
+  const theme = useStore(s => s.theme)
+  const isGotOptions = useStore(s => s.isGotOptions)
+  const isMainEditorMounted = useStore(s => s.isMainEditorMounted)
+  const setIsMainEditorMounted = useStore(s => s.setIsMainEditorMounted)
+  const setCurrentScreen = useStore(s => s.setCurrentScreen)
+  const updateTheme = useStore(s => s.updateTheme)
+  const history = useStore(s => s.history)
+  const selectedHistoryId = useStore(s => s.selectedHistoryId)
+  const loadFromHistory = useStore(s => s.loadFromHistory)
+  const clearEditor = useStore(s => s.clearEditor)
+  const isDirty = useStore(s => s.isDirty)
+  const setIsDirty = useStore(s => s.setIsDirty)
+  const setPendingExecCode = useStore(s => s.setPendingExecCode)
+  const deleteHistory = useStore(s => s.deleteHistory)
+  const selectedHistoryTitle = useMemo(
+    () =>
+      selectedHistoryId
+        ? (history.find(h => h.id === selectedHistoryId)?.title ?? 'New')
+        : 'New',
+    [selectedHistoryId, history]
+  )
+
+  const mergedEditorOptions = useMemo(
+    () => ({
+      ...editorOptions,
+      padding: { ...editorOptions.padding, top: 0 },
+      renderLineHighlight: 'none' as const
+    }),
+    [editorOptions]
+  )
+
   const editorRef = useRef<MonacoEditor.editor.IStandaloneCodeEditor>()
   const monacoRef = useRef<Monaco>()
   const modelRef = useRef<MonacoEditor.editor.ITextModel>()
@@ -138,6 +166,7 @@ const Main = () => {
 
     setCode(newCode)
     setCursorPosition(newCursorPosition)
+    setIsDirty(true)
 
     // ちょっと遅延させてclientStorageに値を保存する
     window.clearInterval(onChangeTimer.current)
@@ -221,6 +250,8 @@ const Main = () => {
     )
     console.log('jsCode', jsCode)
 
+    setPendingExecCode(editorRef.current.getValue())
+
     parent.postMessage(
       {
         pluginMessage: {
@@ -231,6 +262,15 @@ const Main = () => {
       '*'
     )
     console.log('postMessage: exec')
+  }
+
+  function onHistoryChange(event: ChangeEvent<HTMLSelectElement>) {
+    const value = event.target.value
+    if (value === '') {
+      clearEditor()
+    } else {
+      loadFromHistory(value)
+    }
   }
 
   function onSettingClick() {
@@ -261,6 +301,68 @@ const Main = () => {
         height: 100%;
       `}
     >
+      <HStack
+        css={css`
+          padding: ${spacing[2]} ${spacing[2]} ${spacing[2]} 18px;
+          position: relative;
+          cursor: pointer;
+        `}
+      >
+        <select
+          value={selectedHistoryId ?? ''}
+          onChange={onHistoryChange}
+          css={css`
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+          `}
+        >
+          <option value="">New</option>
+          {history.map(entry => (
+            <option key={entry.id} value={entry.id}>
+              {entry.title}
+            </option>
+          ))}
+        </select>
+
+        <IconFile
+          css={css`
+            pointer-events: none;
+            fill: ${color.text};
+            flex-shrink: 0;
+          `}
+        />
+
+        <Spacer x={spacing[2]} />
+
+        <span
+          css={css`
+            font-size: ${typography.fontSize};
+            color: ${selectedHistoryId ? color.text : color.inactive};
+            font-style: ${isDirty ? 'italic' : 'normal'};
+            pointer-events: none;
+          `}
+        >
+          {selectedHistoryTitle}
+        </span>
+
+        <Spacer x={spacing[1]} />
+
+        <IconChevronDown
+          css={css`
+            pointer-events: none;
+            fill: ${color.disabled};
+            flex-shrink: 0;
+          `}
+        />
+      </HStack>
+
       {/* editor */}
       {isGotOptions && (
         <div
@@ -274,7 +376,7 @@ const Main = () => {
             onChange={onChange}
             onMount={onMount}
             onValidate={onValidate}
-            options={editorOptions}
+            options={mergedEditorOptions}
             theme={theme}
             value={code}
           />
@@ -306,6 +408,28 @@ const Main = () => {
         </a>
 
         <Spacer stretch={true} />
+
+        {selectedHistoryId && (
+          <>
+            <Button
+              type="ghost"
+              padding={false}
+              onClick={() => {
+                if (confirm('Delete this history entry?')) {
+                  deleteHistory(selectedHistoryId)
+                }
+              }}
+            >
+              <IconTrash
+                css={css`
+                  fill: ${color.alert};
+                `}
+              />
+            </Button>
+
+            <Spacer x={spacing[2]} />
+          </>
+        )}
 
         {/* exec button */}
         <Button type="primary" onClick={exec} disabled={code.length === 0}>

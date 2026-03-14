@@ -2,7 +2,10 @@ import { css } from '@emotion/react'
 import { PropsWithChildren } from 'react'
 import { color, zIndex } from '@/ui/styles'
 
-const Loading = ({ children, ...delegated }: PropsWithChildren<JSX.IntrinsicElements['div']>) => {
+const Loading = ({
+  children,
+  ...delegated
+}: PropsWithChildren<JSX.IntrinsicElements['div']>) => {
   return (
     <div
       css={css`

@@ -1,32 +1,35 @@
 import {
   ExecMessage,
+  HistoryData,
   NotifyMessage,
   Options,
   PluginMessage,
+  SetHistoryMessage,
   SetOptionsMessage
 } from '@/@types/common'
 import defaultOptions from '@/defaultOptions'
 
 const CLIENT_STORAGE_KEY_NAME = 'run-plugin-api'
+const HISTORY_STORAGE_KEY_NAME = 'run-plugin-api-history'
 
 function exec(msg: ExecMessage) {
   const jsCode = msg.code
   try {
     try {
-      // new Function() でfigmaオブジェクトを明示的に渡す（eval()より安全）
       const executor = new Function('figma', jsCode)
       executor(figma)
     } catch (e) {
-      // sandboxでnew Function()が使えない場合はeval()にフォールバック
-      if (e instanceof TypeError || (e instanceof Error && e.message.includes('Function'))) {
+      if (
+        e instanceof TypeError ||
+        (e instanceof Error && e.message.includes('Function'))
+      ) {
         eval(jsCode)
       } else {
         throw e
       }
     }
-    setTimeout(() => {
-      figma.notify('Code has been executed.')
-    }, 500)
+    figma.notify('Code has been executed.')
+    figma.ui.postMessage({ type: 'exec-success' } as PluginMessage)
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
     figma.notify(`Error: ${message}`, { error: true })
@@ -46,6 +49,9 @@ async function getOptions() {
   const options: Options =
     (await figma.clientStorage.getAsync(CLIENT_STORAGE_KEY_NAME)) ||
     defaultOptions
+  const historyData: HistoryData = (await figma.clientStorage.getAsync(
+    HISTORY_STORAGE_KEY_NAME
+  )) || { items: [] }
 
   // codeが空だったらcodeとcursorPositionは初期値を入れる
   if (options.code == '') {
@@ -56,7 +62,8 @@ async function getOptions() {
   // uiに渡す
   figma.ui.postMessage({
     type: 'get-options-success',
-    options
+    options,
+    history: historyData.items
   } as PluginMessage)
   console.log('postMessage: get-options-success', options)
 
@@ -88,6 +95,12 @@ function notify(msg: NotifyMessage) {
   figma.notify(message, options)
 }
 
+async function setHistory(msg: SetHistoryMessage) {
+  await figma.clientStorage.setAsync(HISTORY_STORAGE_KEY_NAME, {
+    items: msg.history
+  } as HistoryData)
+}
+
 figma.ui.onmessage = (msg: PluginMessage) => {
   switch (msg.type) {
     case 'exec':
@@ -108,6 +121,10 @@ figma.ui.onmessage = (msg: PluginMessage) => {
 
     case 'notify':
       notify(msg)
+      break
+
+    case 'set-history':
+      setHistory(msg)
       break
 
     default:
